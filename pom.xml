@@ -1,7 +1,11 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-
+	<dependency>
+		<groupId>org.sonatype.oss</groupId>
+		<artifactId>oss-parent</artifactId>
+		<version>9</version>
+	</dependency>
 	<groupId>fr.opensagres.maven</groupId>
 	<artifactId>no-annotations-maven-plugin</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
@@ -9,9 +13,34 @@
 
 	<name>no-annotations-maven-plugin Maven Plugin</name>
 
-	<!-- FIXME change it to the project's website -->
-	<url>http://maven.apache.org</url>
+	<url>https://github.com/pascalleclercq/no-annotations-maven-plugin</url>
 
+	<scm>
+		<connection>scm:git:https://github.com/pascalleclercq/no-annotations-maven-plugin.git</connection>
+		<developerConnection>scm:git:https://github.com/pascalleclercq/no-annotations-maven-plugin.git</developerConnection>
+	</scm>
+
+	<licenses>
+		<license>
+			<name>Apache License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+	<developers>
+		<developer>
+			<id>pascalleclercq</id>
+			<name>Pascal Leclercq</name>
+			<email>pascal.leclercq@gmail.com</email>
+			<roles>
+				<role>developper</role>
+			</roles>
+			<timezone>Europe/Paris</timezone>
+		</developer>
+	</developers>
+	<prerequisites>
+		<maven>3.0</maven>
+	</prerequisites>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
@@ -91,6 +120,18 @@
 						</goals>
 					</execution>
 				</executions>
+			</plugin>
+			<plugin>
+				<groupId>com.mycila.maven-license-plugin</groupId>
+				<artifactId>maven-license-plugin</artifactId>
+				<version>1.9.0</version>
+				<configuration>
+					<basedir>${basedir}</basedir>
+					<header>LICENSE</header>
+					<includes>
+						<include>src/**/*.java</include>
+					</includes>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>
