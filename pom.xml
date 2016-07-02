@@ -8,7 +8,7 @@
 	</parent>
 	<groupId>fr.opensagres.maven</groupId>
 	<artifactId>no-annotations-maven-plugin</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.9.0-SNAPSHOT</version>
 	<packaging>maven-plugin</packaging>
 
 	<name>no-annotations-maven-plugin Maven Plugin</name>
