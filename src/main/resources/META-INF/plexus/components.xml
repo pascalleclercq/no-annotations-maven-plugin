@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<component-set>
+	<components>
+		<component>
+			<role>org.apache.maven.lifecycle.Lifecycle</role>
+			<implementation>org.apache.maven.lifecycle.Lifecycle</implementation>
+			<role-hint>jar</role-hint>
+			<configuration>
+				<id>no-annotations</id>
+				 <default-phases>
+                    <process-sources>fr.opensagres.maven:no-annotations-maven-plugin:removeAnnotations</process-sources>
+                    <compile>fr.opensagres.maven:no-annotations-maven-plugin:compile</compile>
+                    <package>fr.opensagres.maven:no-annotations-maven-plugin:jar</package>
+                </default-phases>
+				 <phases>
+                    <process-sources>fr.opensagres.maven:no-annotations-maven-plugin:removeAnnotations</process-sources>
+                    <compile>fr.opensagres.maven:no-annotations-maven-plugin:compile</compile>
+                    <package>fr.opensagres.maven:no-annotations-maven-plugin:jar</package>
+                </phases>
+			</configuration>
+		</component>
+	</components>
+</component-set>
