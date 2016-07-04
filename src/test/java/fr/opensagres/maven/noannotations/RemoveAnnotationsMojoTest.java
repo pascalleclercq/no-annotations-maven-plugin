@@ -269,7 +269,76 @@ public class RemoveAnnotationsMojoTest {
 	@Test
 	public void fromUser_java() throws Exception {
 		String content = FileUtils.readFileToString(new File(ClassLoader.getSystemResource("User.java").getFile()));
-		sut.cleanupAnnotations(content);
+		String cleanedUp = sut.cleanupAnnotations(content);
+		
+		String expected ="package demo;\n"+
+		"\n"+
+		"import java.util.Date;\n"+
+		"\n"+
+		"\n"+
+		"public class User {\n"+
+		"\n"+
+		"    private String userName;\n"+
+		"\n"+
+		"    private String firstName;\n"+
+		"\n"+
+		"    private String surname;\n"+
+		"\n"+
+		"    private String email;\n"+
+		"\n"+
+		"    private byte[] avatar;\n"+
+		"\n"+
+		"    private Date lastUpdated;\n"+
+		"\n"+
+		"    public String getUserName() {\n"+
+		"        return userName;\n"+
+		"    }\n"+
+		"\n"+
+		"    public void setUserName(String userName) {\n"+
+		"        this.userName = userName;\n"+
+		"    }\n"+
+		"\n"+
+		"    public String getFirstName() {\n"+
+		"        return firstName;\n"+
+		"    }\n"+
+		"\n"+
+		"    public void setFirstName(String firstName) {\n"+
+		"        this.firstName = firstName;\n"+
+		"    }\n"+
+		"\n"+
+		"    public String getSurname() {\n"+
+		"        return surname;\n"+
+		"    }\n"+
+		"\n"+
+		"    public void setSurname(String surname) {\n"+
+		"        this.surname = surname;\n"+
+		"    }\n"+
+		"\n"+
+		"    public String getEmail() {\n"+
+		"        return email;\n"+
+		"    }\n"+
+		"\n"+
+		"    public void setEmail(String email) {\n"+
+		"        this.email = email;\n"+
+		"    }\n"+
+		"\n"+
+		"    public byte[] getAvatar() {\n"+
+		"        return avatar;\n"+
+		"    }\n"+
+		"\n"+
+		"    public void setAvatar(byte[] avatar) {\n"+
+		"        this.avatar = avatar;\n"+
+		"    }\n"+
+		"\n"+
+		"    public Date getLastUpdated() {\n"+
+		"        return lastUpdated;\n"+
+		"    }\n"+
+		"\n"+
+		"    public void setLastUpdated(Date lastUpdated) {\n"+
+		"        this.lastUpdated = lastUpdated;\n"+
+		"    }\n"+
+		"}";
+		Assert.assertEquals(expected, cleanedUp);
 		//System.out.println(sut.cleanupAnnotations(content));
 		
 	}
