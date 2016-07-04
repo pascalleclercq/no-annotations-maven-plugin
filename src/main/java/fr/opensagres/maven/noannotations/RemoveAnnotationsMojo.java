@@ -244,7 +244,7 @@ public class RemoveAnnotationsMojo
     @Parameter( defaultValue = "${project.build.directory}/no-dep", property = "no-dep-source-folder", required = false )
     private File noAnnotationsSourceFolder;
 
-    @Parameter( default-value = "${project}", readonly = true )
+    @Parameter( defaultValue = "${project}", readonly = true )
     private MavenProject project;
 
     
