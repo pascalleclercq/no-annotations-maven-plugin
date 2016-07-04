@@ -210,7 +210,7 @@ import junit.framework.Assert;
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;
 
-public class Tdd {
+public class RemoveAnnotationsMojoTest {
 
 	RemoveAnnotationsMojo sut = new RemoveAnnotationsMojo();
 	String givenAClassWithAnnotations;
