@@ -5,7 +5,7 @@ To use It, simple add to your pom :
 			<plugin>
 				<groupId>fr.opensagres.maven.plugin</groupId>
 				<artifactId>no-annotations-maven-plugin</artifactId>
-				<version>0.5.0</version>
+				<version>0.6.0</version>
 				<extensions>true</extensions>
 			</plugin>
 			
