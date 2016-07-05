@@ -5,7 +5,7 @@
 		<artifactId>oss-parent</artifactId>
 		<version>9</version>
 	</parent>
-	<groupId>fr.opensagres.maven.plugin</groupId>
+	<groupId>fr.opensagres.maven.plugins</groupId>
 	<artifactId>no-annotations-maven-plugin</artifactId>
 	<version>0.6.1-SNAPSHOT</version>
 	<packaging>maven-plugin</packaging>
