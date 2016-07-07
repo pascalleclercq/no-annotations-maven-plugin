@@ -9,7 +9,7 @@
 				<id>no-annotations</id>
 				<default-phases>
 					<process-sources>fr.opensagres.maven.plugins:no-annotations-maven-plugin:removeAnnotations</process-sources>
-					<compile>org.apache.maven.plugins:maven-compiler-plugin:compile,fr.opensagres.maven:no-annotations-maven-plugin:compile</compile>
+					<compile>org.apache.maven.plugins:maven-compiler-plugin:compile,fr.opensagres.maven.plugins:no-annotations-maven-plugin:compile</compile>
 					<package>fr.opensagres.maven.plugins:no-annotations-maven-plugin:jar</package>
 				</default-phases>
 				<phases>
