@@ -203,175 +203,125 @@
  */
 package fr.opensagres.maven.noannotations;
 
-
 import java.io.File;
-import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.Collections;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.logging.Log;
+import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
-import org.apache.maven.plugins.annotations.Mojo;
-import org.apache.maven.plugins.annotations.Parameter;
-import org.apache.maven.project.MavenProject;
-import org.apache.maven.shared.utils.io.DirectoryScanner;
-import org.eclipse.jdt.core.dom.AST;
-import org.eclipse.jdt.core.dom.ASTParser;
-import org.eclipse.jdt.core.dom.ASTVisitor;
-import org.eclipse.jdt.core.dom.CompilationUnit;
-import org.eclipse.jdt.core.dom.ImportDeclaration;
-import org.eclipse.jdt.core.dom.MarkerAnnotation;
-import org.eclipse.jdt.core.dom.Name;
-import org.eclipse.jdt.core.dom.NormalAnnotation;
-import org.eclipse.jdt.core.dom.SingleMemberAnnotation;
-import org.eclipse.jface.text.BadLocationException;
-import org.eclipse.jface.text.Document;
-import org.eclipse.text.edits.MalformedTreeException;
-import org.eclipse.text.edits.TextEdit;
+import org.codehaus.plexus.compiler.Compiler;
+import org.codehaus.plexus.compiler.CompilerConfiguration;
+import org.codehaus.plexus.compiler.CompilerException;
+import org.codehaus.plexus.compiler.manager.CompilerManager;
+import org.codehaus.plexus.compiler.manager.NoSuchCompilerException;
 
-@Mojo(name = "removeAnnotations", defaultPhase = LifecyclePhase.PROCESS_SOURCES )
-public class RemoveAnnotationsMojo
-    extends AbstractMojo
-{
+public class CompileMojo extends AbstractMojo {
 
+    
+    private File classesDirectory;
+    
     /**
      * Location of the folder.
      */
-    @Parameter( defaultValue = "${project.build.directory}/no-dep", property = "no-dep-source-folder", required = false )
     private File noAnnotationsSourceFolder;
 
-    @Parameter( defaultValue = "${project}", readonly = true )
-    MavenProject project;
+
+    /**
+     * Plexus compiler manager.
+     */
+    private CompilerManager compilerManager;
 
     
-    
-    public void execute()
-        throws MojoExecutionException
-    {
-    	
-        transform(new File(project.getBuild().getSourceDirectory()));
-    }
-
-    File getNoAnnotationsSourceFolder() {
-		return noAnnotationsSourceFolder;
-	}
-
-	
-     
-    @Parameter
-    private String[] includes = {"**/*.java"};
- 
- 
-    @Parameter
-    private String[] excludes;
- 
-
+    private String compilerId;
+    /**
+     * Set to <code>true</code> to optimize the compiled code using the compiler's optimization methods.
+     */
+    private boolean optimize;
     
     /**
-     * Scans a single directory.
-     *
-     * @param root Directory to scan
-     * @throws MojoExecutionException in case of IO errors
+     * Set to <code>true</code> to include debugging information in the compiled class files.
      */
-    private void transform(File root) throws MojoExecutionException {
-        final Log log = getLog();
-         
-        if (!root.exists()) {
-            return;
+    private boolean debug = true;
+    
+    /**
+     * Set to <code>true</code> to show messages about what the compiler is doing.
+     */
+    private boolean verbose;
+
+    /**
+     * Sets whether to show source locations where deprecated APIs are used.
+     */
+    private boolean showDeprecation;
+
+    /**
+     * Set to <code>true</code> to show compilation warnings.
+     */
+    private boolean showWarnings;
+
+    /**
+     * The -source argument for the Java compiler.
+     */
+    protected String source;
+
+    /**
+     * The -target argument for the Java compiler.
+     */
+    protected String target;
+
+
+    /**
+     * The -encoding argument for the Java compiler.
+     *
+     * @since 2.1
+     */
+    private String encoding;
+
+	public void execute() throws MojoExecutionException, MojoFailureException {
+
+        Compiler compiler;
+        getLog().debug( "Using compiler '" + compilerId + "'." );
+
+        try
+        {
+            compiler = compilerManager.getCompiler( compilerId );
         }
- 
-        log.info("scanning source file directory '" + root + "'");
-         
-        final DirectoryScanner directoryScanner = new DirectoryScanner();
-        directoryScanner.setIncludes(includes);
-        directoryScanner.setExcludes(excludes);
-        directoryScanner.setBasedir(root);
-        directoryScanner.scan();
- 
-        for (String fileName : directoryScanner.getIncludedFiles()) {
-            final File file = new File(root, fileName);
-            try {
-				String content = FileUtils.readFileToString(file);
-				String noAnnotations = cleanupAnnotations(content);
-				File target = new File(noAnnotationsSourceFolder, fileName);
-				FileUtils.writeStringToFile(target, noAnnotations);
-			} catch (IOException e) {
-				throw new MojoExecutionException(e.getMessage(), e);
-			}
-        }       
-    }
+        catch ( NoSuchCompilerException e )
+        {
+            throw new MojoExecutionException( "No such compiler '" + e.getCompilerId() + "'." );
+        }
 
-    
-    public void setProject(MavenProject project) {
-        this.project = project;
-    }
-    
+        
+        CompilerConfiguration compilerConfiguration = new CompilerConfiguration();
 
-	String cleanupAnnotations(String content) throws MojoExecutionException {
-		Document doc = new Document(content);
-		ASTParser parser = ASTParser.newParser(AST.JLS8);
-		parser.setSource(doc.get().toCharArray());
-		final CompilationUnit cu = (CompilationUnit) parser.createAST(null);
-		cu.recordModifications();
-		
-		final Set<Name> annotations = new HashSet<Name>();
-		collectAndRemoveAnnotations(cu, annotations);
-		removeUnusedImports(cu, annotations);
-		TextEdit edits = cu.rewrite(doc, null);
-		try {
-			edits.apply(doc);
-		} catch (MalformedTreeException e) {
-			throw new MojoExecutionException(e.getMessage(), e);
-		} catch (BadLocationException e) {
+        compilerConfiguration.setOutputLocation( classesDirectory.getAbsolutePath());
+
+        //compilerConfiguration.setClasspathEntries( getClasspathElements() );
+
+        compilerConfiguration.setSourceLocations( Collections.singletonList(noAnnotationsSourceFolder.getAbsolutePath()) );
+
+        compilerConfiguration.setOptimize( optimize );
+
+        compilerConfiguration.setDebug( debug );
+
+        compilerConfiguration.setVerbose( verbose );
+
+        compilerConfiguration.setShowWarnings( showWarnings );
+
+        compilerConfiguration.setShowDeprecation( showDeprecation );
+
+        compilerConfiguration.setSourceVersion( source );
+
+        compilerConfiguration.setTargetVersion( target );
+
+        compilerConfiguration.setSourceEncoding( encoding );
+        
+        try {
+			compiler.performCompile(compilerConfiguration);
+		} catch (CompilerException e) {
 			throw new MojoExecutionException(e.getMessage(), e);
 		}
-		return doc.get();
+
 	}
 
-	private void removeUnusedImports(final CompilationUnit cu,
-			final Set<Name> annotations) {
-		cu.accept(new ASTVisitor() {
-			
-			@Override
-			public boolean visit(ImportDeclaration node) {
-				for (Name name : annotations) {
-					if(node.getName().getFullyQualifiedName().endsWith("."+name.getFullyQualifiedName())) {
-						node.delete();
-					}
-				}
-				return super.visit(node);
-			}
-		});
-	}
-
-	private void collectAndRemoveAnnotations(final CompilationUnit cu,
-			final Set<Name> annotations) {
-		
-		cu.accept(new ASTVisitor() {
-
-			@Override
-			public boolean visit(SingleMemberAnnotation node) {
-				
-				annotations.add(node.getTypeName());
-				node.delete();
-				return super.visit(node);
-			}
-			@Override
-			public boolean visit(MarkerAnnotation node) {
-				annotations.add(node.getTypeName());
-				node.delete();
-				return super.visit(node);
-			}
-			
-			@Override
-			public boolean visit(NormalAnnotation node) {
-				annotations.add(node.getTypeName());
-				node.delete();
-				return super.visit(node);
-			}
-		});
-	}
 }

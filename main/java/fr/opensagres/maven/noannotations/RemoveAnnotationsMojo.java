@@ -214,8 +214,6 @@ import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
-import org.apache.maven.plugins.annotations.Mojo;
-import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.shared.utils.io.DirectoryScanner;
 import org.eclipse.jdt.core.dom.AST;
@@ -232,7 +230,6 @@ import org.eclipse.jface.text.Document;
 import org.eclipse.text.edits.MalformedTreeException;
 import org.eclipse.text.edits.TextEdit;
 
-@Mojo(name = "removeAnnotations", defaultPhase = LifecyclePhase.PROCESS_SOURCES )
 public class RemoveAnnotationsMojo
     extends AbstractMojo
 {
@@ -240,10 +237,8 @@ public class RemoveAnnotationsMojo
     /**
      * Location of the folder.
      */
-    @Parameter( defaultValue = "${project.build.directory}/no-dep", property = "no-dep-source-folder", required = false )
     private File noAnnotationsSourceFolder;
 
-    @Parameter( defaultValue = "${project}", readonly = true )
     MavenProject project;
 
     
@@ -261,11 +256,9 @@ public class RemoveAnnotationsMojo
 
 	
      
-    @Parameter
     private String[] includes = {"**/*.java"};
  
  
-    @Parameter
     private String[] excludes;
  
 
@@ -312,7 +305,7 @@ public class RemoveAnnotationsMojo
 
 	String cleanupAnnotations(String content) throws MojoExecutionException {
 		Document doc = new Document(content);
-		ASTParser parser = ASTParser.newParser(AST.JLS8);
+		ASTParser parser = ASTParser.newParser(AST.JLS3);
 		parser.setSource(doc.get().toCharArray());
 		final CompilationUnit cu = (CompilationUnit) parser.createAST(null);
 		cu.recordModifications();
@@ -335,7 +328,6 @@ public class RemoveAnnotationsMojo
 			final Set<Name> annotations) {
 		cu.accept(new ASTVisitor() {
 			
-			@Override
 			public boolean visit(ImportDeclaration node) {
 				for (Name name : annotations) {
 					if(node.getName().getFullyQualifiedName().endsWith("."+name.getFullyQualifiedName())) {
@@ -352,21 +344,18 @@ public class RemoveAnnotationsMojo
 		
 		cu.accept(new ASTVisitor() {
 
-			@Override
 			public boolean visit(SingleMemberAnnotation node) {
 				
 				annotations.add(node.getTypeName());
 				node.delete();
 				return super.visit(node);
 			}
-			@Override
 			public boolean visit(MarkerAnnotation node) {
 				annotations.add(node.getTypeName());
 				node.delete();
 				return super.visit(node);
 			}
 			
-			@Override
 			public boolean visit(NormalAnnotation node) {
 				annotations.add(node.getTypeName());
 				node.delete();
