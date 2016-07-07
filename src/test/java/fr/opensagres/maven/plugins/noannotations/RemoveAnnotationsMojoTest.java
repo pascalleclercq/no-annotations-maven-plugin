@@ -1,9 +1,11 @@
-package fr.opensagres.maven.noannotations;
+package fr.opensagres.maven.plugins.noannotations;
 
 import java.io.File;
 
 import org.apache.maven.plugin.testing.AbstractMojoTestCase;
 import org.apache.maven.project.MavenProject;
+
+import fr.opensagres.maven.plugins.noannotations.RemoveAnnotationsMojo;
 
 public class RemoveAnnotationsMojoTest extends AbstractMojoTestCase {
 

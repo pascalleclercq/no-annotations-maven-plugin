@@ -201,127 +201,67 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package fr.opensagres.maven.noannotations;
+package fr.opensagres.maven.plugins.noannotations;
 
 import java.io.File;
-import java.util.Collections;
 
-import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugin.jar.AbstractJarMojo;
+import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
-import org.codehaus.plexus.compiler.Compiler;
-import org.codehaus.plexus.compiler.CompilerConfiguration;
-import org.codehaus.plexus.compiler.CompilerException;
-import org.codehaus.plexus.compiler.manager.CompilerManager;
-import org.codehaus.plexus.compiler.manager.NoSuchCompilerException;
+import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.project.MavenProjectHelper;
 
-public class CompileMojo extends AbstractMojo {
+@Mojo( name = "jar", defaultPhase = LifecyclePhase.PACKAGE, requiresProject = true, threadSafe = true)
+public class NoDepJarMojo extends AbstractJarMojo {
 
-    
+	
+	@Parameter(defaultValue = "${project.build.directory}/classes-no-dep", property="no-dep.build.outputDirectory",required=true, readonly=true)
     private File classesDirectory;
     
-    /**
-     * Location of the folder.
-     */
-    private File noAnnotationsSourceFolder;
-
-
-    /**
-     * Plexus compiler manager.
-     */
-    private CompilerManager compilerManager;
-
+	@Component
+    private MavenProjectHelper projectHelper;
     
-    private String compilerId;
-    /**
-     * Set to <code>true</code> to optimize the compiled code using the compiler's optimization methods.
-     */
-    private boolean optimize;
-    
-    /**
-     * Set to <code>true</code> to include debugging information in the compiled class files.
-     */
-    private boolean debug = true;
-    
-    /**
-     * Set to <code>true</code> to show messages about what the compiler is doing.
-     */
-    private boolean verbose;
-
-    /**
-     * Sets whether to show source locations where deprecated APIs are used.
-     */
-    private boolean showDeprecation;
-
-    /**
-     * Set to <code>true</code> to show compilation warnings.
-     */
-    private boolean showWarnings;
-
-    /**
-     * The -source argument for the Java compiler.
-     */
-    protected String source;
-
-    /**
-     * The -target argument for the Java compiler.
-     */
-    protected String target;
-
-
-    /**
-     * The -encoding argument for the Java compiler.
-     *
-     * @since 2.1
-     */
-    private String encoding;
-
-	public void execute() throws MojoExecutionException, MojoFailureException {
-
-        Compiler compiler;
-        getLog().debug( "Using compiler '" + compilerId + "'." );
-
-        try
-        {
-            compiler = compilerManager.getCompiler( compilerId );
-        }
-        catch ( NoSuchCompilerException e )
-        {
-            throw new MojoExecutionException( "No such compiler '" + e.getCompilerId() + "'." );
-        }
-
-        
-        CompilerConfiguration compilerConfiguration = new CompilerConfiguration();
-
-        compilerConfiguration.setOutputLocation( classesDirectory.getAbsolutePath());
-
-        //compilerConfiguration.setClasspathEntries( getClasspathElements() );
-
-        compilerConfiguration.setSourceLocations( Collections.singletonList(noAnnotationsSourceFolder.getAbsolutePath()) );
-
-        compilerConfiguration.setOptimize( optimize );
-
-        compilerConfiguration.setDebug( debug );
-
-        compilerConfiguration.setVerbose( verbose );
-
-        compilerConfiguration.setShowWarnings( showWarnings );
-
-        compilerConfiguration.setShowDeprecation( showDeprecation );
-
-        compilerConfiguration.setSourceVersion( source );
-
-        compilerConfiguration.setTargetVersion( target );
-
-        compilerConfiguration.setSourceEncoding( encoding );
-        
-        try {
-			compiler.performCompile(compilerConfiguration);
-		} catch (CompilerException e) {
-			throw new MojoExecutionException(e.getMessage(), e);
-		}
-
+	@Override
+	public void execute() throws MojoExecutionException {
+		File jarFile = createArchive();
+		
+		projectHelper.attachArtifact( getProject(), getType(), getClassifier(), jarFile );
+		
 	}
+	
+	/**
+     * Classifier to add to the artifact generated. If given, the artifact will be attached
+     * as a supplemental artifact.
+     * If not given this will create the main artifact which is the default behavior. 
+     * If you try to do that a second time without using a classifier the build will fail.
+     */
+    @Parameter
+    private String classifier;
+
+    /**
+     * {@inheritDoc}
+     */
+    protected String getType()
+    {
+        return "jar";
+    }
+	
+	/**
+     * {@inheritDoc}
+     */
+    protected File getClassesDirectory()
+    {
+        return classesDirectory;
+    }
+    
+    protected String getClassifier()
+    {
+        if (classifier == null) {
+        	return "no-annotation";
+        }
+        return classifier;
+    }
 
 }

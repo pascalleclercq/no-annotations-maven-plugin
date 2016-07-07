@@ -201,7 +201,7 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package fr.opensagres.maven.noannotations;
+package fr.opensagres.maven.plugins.noannotations;
 
 import java.io.File;
 
@@ -209,6 +209,8 @@ import junit.framework.Assert;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;
+
+import fr.opensagres.maven.plugins.noannotations.RemoveAnnotationsMojo;
 
 public class RemoveAnnotationsTest {
 

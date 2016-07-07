@@ -201,67 +201,144 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package fr.opensagres.maven.noannotations;
+package fr.opensagres.maven.plugins.noannotations;
 
 import java.io.File;
+import java.util.Collections;
 
+import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.jar.AbstractJarMojo;
+import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
-import org.apache.maven.project.MavenProjectHelper;
+import org.codehaus.plexus.compiler.Compiler;
+import org.codehaus.plexus.compiler.CompilerConfiguration;
+import org.codehaus.plexus.compiler.CompilerException;
+import org.codehaus.plexus.compiler.manager.CompilerManager;
+import org.codehaus.plexus.compiler.manager.NoSuchCompilerException;
 
-@Mojo( name = "jar", defaultPhase = LifecyclePhase.PACKAGE, requiresProject = true, threadSafe = true)
-public class NoDepJarMojo extends AbstractJarMojo {
+@Mojo(name = "compile", defaultPhase = LifecyclePhase.COMPILE )
+public class CompileMojo extends AbstractMojo {
 
-	
-	@Parameter(defaultValue = "${project.build.directory}/classes-no-dep", property="no-dep.build.outputDirectory",required=true, readonly=true)
+    
+    @Parameter(defaultValue = "${project.build.directory}/classes-no-dep", property="no-dep.build.outputDirectory",required=true, readonly=true)
     private File classesDirectory;
     
-	@Component
-    private MavenProjectHelper projectHelper;
-    
-	@Override
-	public void execute() throws MojoExecutionException {
-		File jarFile = createArchive();
-		
-		projectHelper.attachArtifact( getProject(), getType(), getClassifier(), jarFile );
-		
-	}
-	
-	/**
-     * Classifier to add to the artifact generated. If given, the artifact will be attached
-     * as a supplemental artifact.
-     * If not given this will create the main artifact which is the default behavior. 
-     * If you try to do that a second time without using a classifier the build will fail.
+    /**
+     * Location of the folder.
      */
-    @Parameter
-    private String classifier;
+    @Parameter( defaultValue = "${project.build.directory}/no-dep", property = "no-dep-source-folder", required = false )
+    private File noAnnotationsSourceFolder;
+
 
     /**
-     * {@inheritDoc}
+     * Plexus compiler manager.
      */
-    protected String getType()
-    {
-        return "jar";
-    }
-	
-	/**
-     * {@inheritDoc}
-     */
-    protected File getClassesDirectory()
-    {
-        return classesDirectory;
-    }
+    @Component
+    private CompilerManager compilerManager;
+
     
-    protected String getClassifier()
-    {
-        if (classifier == null) {
-        	return "no-annotation";
+    @Parameter( property = "maven.compiler.compilerId", defaultValue = "javac" )
+    private String compilerId;
+    /**
+     * Set to <code>true</code> to optimize the compiled code using the compiler's optimization methods.
+     */
+    @Parameter( property = "maven.compiler.optimize", defaultValue = "false" )
+    private boolean optimize;
+    
+    /**
+     * Set to <code>true</code> to include debugging information in the compiled class files.
+     */
+    @Parameter( property = "maven.compiler.debug", defaultValue = "true" )
+    private boolean debug = true;
+    
+    /**
+     * Set to <code>true</code> to show messages about what the compiler is doing.
+     */
+    @Parameter( property = "maven.compiler.verbose", defaultValue = "false" )
+    private boolean verbose;
+
+    /**
+     * Sets whether to show source locations where deprecated APIs are used.
+     */
+    @Parameter( property = "maven.compiler.showDeprecation", defaultValue = "false" )
+    private boolean showDeprecation;
+
+    /**
+     * Set to <code>true</code> to show compilation warnings.
+     */
+    @Parameter( property = "maven.compiler.showWarnings", defaultValue = "false" )
+    private boolean showWarnings;
+
+    /**
+     * The -source argument for the Java compiler.
+     */
+    @Parameter( property = "maven.compiler.source", defaultValue = "1.6" )
+    protected String source;
+
+    /**
+     * The -target argument for the Java compiler.
+     */
+    @Parameter( property = "maven.compiler.target", defaultValue = "1.6" )
+    protected String target;
+
+
+    /**
+     * The -encoding argument for the Java compiler.
+     *
+     * @since 2.1
+     */
+    @Parameter( property = "encoding", defaultValue = "${project.build.sourceEncoding}" )
+    private String encoding;
+
+	@Override
+	public void execute() throws MojoExecutionException, MojoFailureException {
+
+        Compiler compiler;
+        getLog().debug( "Using compiler '" + compilerId + "'." );
+
+        try
+        {
+            compiler = compilerManager.getCompiler( compilerId );
         }
-        return classifier;
-    }
+        catch ( NoSuchCompilerException e )
+        {
+            throw new MojoExecutionException( "No such compiler '" + e.getCompilerId() + "'." );
+        }
+
+        
+        CompilerConfiguration compilerConfiguration = new CompilerConfiguration();
+
+        compilerConfiguration.setOutputLocation( classesDirectory.getAbsolutePath());
+
+        //compilerConfiguration.setClasspathEntries( getClasspathElements() );
+
+        compilerConfiguration.setSourceLocations( Collections.singletonList(noAnnotationsSourceFolder.getAbsolutePath()) );
+
+        compilerConfiguration.setOptimize( optimize );
+
+        compilerConfiguration.setDebug( debug );
+
+        compilerConfiguration.setVerbose( verbose );
+
+        compilerConfiguration.setShowWarnings( showWarnings );
+
+        compilerConfiguration.setShowDeprecation( showDeprecation );
+
+        compilerConfiguration.setSourceVersion( source );
+
+        compilerConfiguration.setTargetVersion( target );
+
+        compilerConfiguration.setSourceEncoding( encoding );
+        
+        try {
+			compiler.performCompile(compilerConfiguration);
+		} catch (CompilerException e) {
+			throw new MojoExecutionException(e.getMessage(), e);
+		}
+
+	}
 
 }
