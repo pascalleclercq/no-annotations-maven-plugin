@@ -25,14 +25,14 @@ public class RemoveAnnotationsMojoTest extends AbstractMojoTestCase {
 
 	private MavenProject getMockMavenProject() {
 		MavenProject mp = new MavenProject();
-		mp.getBuild().setSourceDirectory("target/test-classes/compiler-basic-test/src/main/java");
-		mp.getBuild().setDirectory("target/test-classes/compiler-basic-test/target");
+		mp.getBuild().setSourceDirectory("target/test-classes/basic-test/src/main/java");
+		mp.getBuild().setDirectory("target/test-classes/basic-test/target");
 
 		return mp;
 	}
 
 	public void testBasic() throws Exception {
-		RemoveAnnotationsMojo mojo = getMojo("target/test-classes/compiler-basic-test/plugin-config.xml");
+		RemoveAnnotationsMojo mojo = getMojo("target/test-classes/basic-test/plugin-config.xml");
 
 		mojo.execute();
 
